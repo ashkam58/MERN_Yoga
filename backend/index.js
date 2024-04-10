@@ -3,11 +3,23 @@ const app = express();
 require("dotenv").config();
 const cors = require("cors");
 const stripe = require("stripe")(process.env.STRIPE_PASSWORD);
+const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 5000;
 
 // middleware
 app.use(cors());
 app.use(express.json());
+
+// Verify token
+// const verifyJWT = (req, res, next) =>{
+//   const authorization = req.headers.authorization;
+//   if(!authorization){
+//     return res.status(401).send({meassage: 'Invalid authorization'})
+//   }
+
+//   const token = authorization?.split
+// }
+
 
 //MONGODB
 
@@ -27,6 +39,7 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     
+    await client.connect();
     //Creating database and collections
     const database = client.db("yoga-master");
     const usersCollections = database.collection("users");
@@ -38,6 +51,16 @@ async function run() {
     
     
         //routes for users
+
+      app.post("/api/set-token", async (req, res)=>{
+        const user = req.body;
+        const token = jwt.sign(user, process.env.ASSESS_SECURITY, {
+          expiresIn: '24h'
+        });
+        res.send({token})
+      })
+
+
         app.post('/new-user', async (req, res)=>{
           const newUser = req.body;
           const result = await usersCollections.insertOne(newUser);
@@ -62,10 +85,12 @@ async function run() {
           const result = await usersCollections.findOne(query);
           res.send(result);
         })
-        
+ 
+        app.delete('/delete-user/:id', async (req, res)=>{
+
+        })
 
 
-    await client.connect();
     //Routes
     app.post("/new-class", async (req, res) => {
       const newClass = req.body;
